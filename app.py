@@ -247,53 +247,56 @@ def get_trades(accountId):
 @app.route("/open-trade/<int:accountId>", methods=["POST"])
 def open_trade(accountId):
     """
-    Note 13th Oct 2024:
-    Our current implementation does not support using data directly form the MT5 Instance. We use external data providers
-    that closesly resemble the data from the broker, however data may not match up perfectly. Therefore we need to change how
-    we actually trigger new trades when connecting to a MT5 terminal
+    Opens a new trade for a specified account at the current market price using the provided parameters.
 
+    Args:
+        accountId (int): The ID of the account on which the trade will be opened.
+
+    Request JSON Data:
+        instrument (str): The trading instrument (symbol) to be traded (e.g., "EURUSD").
+        quantity (float): The number of lots to trade.
+        entryPrice (dict): Contains the expected entry price of the trade.
+        stopLoss (dict): Contains the stop-loss price level.
+        takeProfit (dict): Contains the take-profit price level.
+        riskPercentage (float): The percentage of the account balance to risk.
+        riskRatio (float): The risk/reward ratio to calculate the take-profit level.
+        balanceToRisk (float): The amount of account balance to risk.
+        isLong (int): 1 for buy (long) position, 0 for sell (short) position.
+        openTime (str): The timestamp when the trade should be opened.
+
+    Returns:
+        - 200: Returns the trade result as a JSON object if the trade is successfully opened.
+        - 404: If the symbol is not found, returns a JSON response with an error message.
+        - 500: If the trade fails to open, returns an error message along with the error code and reason.
+
+    Example Response:
+        {
+            "status": "success",
+            "trade": {...}
+        }
+
+        {
+            "status": "failed",
+            "message": "Failed to open trade: [10006] Trade context is busy",
+        }
+
+    Note:
+
+    Our current implementation does not support using real price data directly from the MT5 Instance. We use external data providers
+    that closesly resemble the data from the broker, however data may not match up perfectly.
+    Therefore we cannot rely on the data passed from the platform for this implementation.
 
     The current implementation provides an interface to open a trade at the current price, give a specific stop
     loss size, and delegates logic for generating the trade values to the python adapter.
-    data:
-    {
-    "instrument":"inst",
-    "quantity": 0.00,
-    "entryPrice":
-        {
-            value: 10000
-        },
-    "stopLoss":
-        {
-            value: 9000
-        },
-    "takeProfit":
-        {
-            value: 12000
-        },
-    "riskPercentage": 0.3,
-    "riskRatio": 2,
-    "balanceToRisk": 10000,
-    "isLong": 0.3,
-    "openTime": "something"
-    }
 
-    How it works is, it will take the price given by the caller, and if within a given tolerance (TODO)
+    It will take the price given by the caller, and if within a given tolerance (TODO)
     will execute the trade with the same setup at market price
 
-    Take the above data example
-
-    The platform has already done its own logic based on the data provided to generate its own trade,
-    and now we need to match it up correctly to the real data we have from the broker:
-
-    1. Figure out the stop loss pips - abs(entryPrice-stoplossprice)
-    2. Create a new stop loss based on current market price, using isLong as bid/ask flag
+    1. Figure out the stop loss pips from platform - abs(entryPrice-stoplossprice)
+    2. Create a new stop loss based on current market price of mt5 broker, using isLong as bid/ask flag
     3. Using the riskRatio create a new take profit based on the stop loss pips
     4. Generate quantity based on balance to risk & riskPercentage, and the given stop loss
     5. Execute trade
-
-
-
     """
     instance_check = get_mt5_instance(accountId)
     if instance_check != True:
@@ -357,53 +360,88 @@ def open_trade(accountId):
             {
                 "status": "failed",
                 "message": f"Failed to open trade: [{result.retcode if result else "Unknown Error"}] {err_str}",
-                "error_code": result.retcode if result else "Unknown error",
             }
         ), 500
 
 
-# TODO
 @app.route("/close-trade/<int:accountId>", methods=["POST"])
 def close_trade(accountId):
+    """
+    Closes an open trade for the specified account based on the provided trade ticket (ID).
+
+    Args:
+        accountId (int): The ID of the account from which the trade will be closed.
+
+    Request JSON Data:
+        ticket (int): The trade ticket (ID) of the open trade that needs to be closed.
+
+    Returns:
+        - 200: Returns the trade result as a JSON object if the trade is successfully closed.
+        - 404: If the trade is not found, returns a JSON response with an error message.
+        - 500: If the trade fails to close, returns an error message along with the error code and reason.
+
+    Example Response:
+        {
+            "status": "success",
+            "trade": {...}
+        }
+
+        {
+            "status": "failed",
+            "message": "Failed to close trade: [10006] Trade context is busy",
+            "error_code": 10006
+        }
+    """
     instance_check = get_mt5_instance(accountId)
     if instance_check != True:
         return instance_check
 
     data = request.json
     ticket = data["ticket"]
-    symbol = data["symbol"]
-    position = mt5.positions_get(ticket=ticket)
 
+    position = mt5.positions_get(ticket=ticket)
     if not position:
-        return jsonify({"status": "failed", "message": "Trade not found"}), 404
+        return jsonify({"status": "failed", "message": f"Trade not found"}), 404
+
+    symbol = position[0].symbol
+    volume = position[0].volume
+    position_type = position[0].type  # mt5.ORDER_TYPE_BUY or mt5.ORDER_TYPE_SELL
 
     close_type = (
         mt5.ORDER_TYPE_SELL
-        if position[0].type == mt5.ORDER_TYPE_BUY
+        if position_type == mt5.ORDER_TYPE_BUY
         else mt5.ORDER_TYPE_BUY
     )
-    close_price = (
-        mt5.symbol_info_tick(symbol).bid
-        if close_type == mt5.ORDER_TYPE_SELL
-        else mt5.symbol_info_tick(symbol).ask
-    )
 
+    # TODO: Should we have a price deviation?? Its good for manual closes, but would risk order not filling
     request = {
         "action": mt5.TRADE_ACTION_DEAL,
         "symbol": symbol,
-        "volume": position[0].volume,
+        "volume": volume,
         "type": close_type,
-        "price": close_price,
+        "position": ticket,
+        "deviation": 20,
     }
 
     result = mt5.order_send(request)
 
     if result and result.retcode == mt5.TRADE_RETCODE_DONE:
         return jsonify(result._asdict()), 200
-    return jsonify({"status": "failed", "message": "Failed to close trade"}), 500
+    else:
+        error = mt5.last_error()
+        err_str = log_error(
+            error,
+            f"/close-trade/<int:accountId> [POST] with accountId: {accountId} and ticket: {ticket}",
+        )
+        return jsonify(
+            {
+                "status": "failed",
+                "message": f"Failed to close trade: [{result.retcode if result else 'Unknown Error'}] {err_str}",
+            }
+        ), 500
 
 
-# TODO
+# TODO: Will implement when we use fastAPI with async suport
 @app.route("/transactions-stream/<int:accountId>", methods=["GET"])
 def closed_trades_stream(accountId):
     instance_check = get_mt5_instance(accountId)
