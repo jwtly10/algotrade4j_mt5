@@ -1,8 +1,8 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from mt5_instance import get_mt5_instance
+from utils.mt5_instance import get_mt5_instance
 import MetaTrader5 as mt5
-from utils import log_error
+from utils.utils import log_error
 
 router = APIRouter()
 

@@ -4,7 +4,7 @@ import os
 from dotenv import load_dotenv
 from fastapi.testclient import TestClient
 from main import app
-from mt5_instance import init_mt5_instance
+from utils.mt5_instance import init_mt5_instance
 import logging
 
 load_dotenv()
