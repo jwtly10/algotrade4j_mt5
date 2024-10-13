@@ -103,7 +103,7 @@ async def open_trade(accountId: int, req: TradeRequest):
         )
         raise HTTPException(
             status_code=500,
-            detail=f"Failed to open trade: [{result.retcode if result else "Unknown Error"}] {err_str}",
+            detail=f"Failed to open trade: [{result.retcode if result else 'Unknown Error'}] {err_str}",
         )
 
 

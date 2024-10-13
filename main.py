@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Depends, HTTPException, Header
+from fastapi.middleware.cors import CORSMiddleware
 from routes.account import router as account_router
 from dotenv import load_dotenv
 import os
@@ -8,11 +9,25 @@ from routes.transactions import router as transactions_router
 
 
 load_dotenv()
-
-app = FastAPI()
-
 API_KEY = os.getenv("AUTH_API_KEY")
 API_KEY_HEADER = "X-API-KEY"
+
+app = FastAPI(
+    title="Algotrade4j MT5 REST Adapter",
+    description="REST Adapter for performing broker actions on MT5 Instance from Algotrade4j Trading platform",
+    version="0.0.1",
+    docs_url="/docs",
+    redoc_url="/redoc",
+    openapi_url="/openapi.json",
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 async def api_key_dependency(x_api_key: str = Header(...)):
@@ -31,7 +46,7 @@ app.include_router(
 )
 
 
-@app.get("/api/v1/health")
+@app.get("/health")
 async def health():
     return {"status": "healthy"}
 
