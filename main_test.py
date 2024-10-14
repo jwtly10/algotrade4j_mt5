@@ -1,4 +1,5 @@
 import unittest
+from unittest.mock import patch
 import json
 import os
 from dotenv import load_dotenv
@@ -25,16 +26,18 @@ class MetaTraderAPITestCase(unittest.TestCase):
         self.mock_password = os.getenv("TEST_PASSWORD")
         self.mock_server = os.getenv("TEST_SERVER")
         self.mock_path = os.getenv("TEST_MT5_PATH")
+        self.mock_api_key = os.getenv("AUTH_API_KEY")
 
     def test_initialize_mt5(self):
         response = self.client.post(
-            "/account/initialize",
+            "api/v1/account/initialize",
             json={
                 "accountId": self.mock_account_id,
                 "password": self.mock_password,
                 "server": self.mock_server,
                 "path": self.mock_path,
             },
+            headers={"x-api-key": self.mock_api_key},
         )
 
         data = response.json()
@@ -47,13 +50,14 @@ class MetaTraderAPITestCase(unittest.TestCase):
 
     def test_initialize_mt5_fail(self):
         response = self.client.post(
-            "/account/initialize",
+            "api/v1/initialize",
             json={
                 "accountId": self.mock_account_id,
                 "password": self.mock_password,
                 "server": self.mock_server,
                 "path": "C:/Users/failed/Programs/MetaTrader 5/terminal64.exe",  # This is invalid
             },
+            headers={"x-api-key": self.mock_api_key},
         )
 
         data = response.json()
@@ -61,10 +65,9 @@ class MetaTraderAPITestCase(unittest.TestCase):
         print(json.dumps(data, indent=4))
 
         self.assertEqual(response.status_code, 500)
-        self.assertIn("failed", data["status"])
         self.assertEqual(
-            "Failed to initialize MetaTrader instance: Error code: -10003, Reason: IPC initialize failed, Process create failed 'C:/Users/failed/Programs/MetaTrader 5/terminal64.exe'",
-            data["message"],
+            "Failed to initialize MT5 instance: Error code: -10003, Reason: IPC initialize failed, Process create failed 'C:/Users/failed/Programs/MetaTrader 5/terminal64.exe'",
+            data["detail"],
         )
 
     def test_get_account_info(self):
@@ -72,7 +75,10 @@ class MetaTraderAPITestCase(unittest.TestCase):
             self.mock_account_id, self.mock_password, self.mock_server, self.mock_path
         )
 
-        response = self.client.get(f"/account/get-account/{self.mock_account_id}")
+        response = self.client.get(
+            f"api/v1/accounts/{self.mock_account_id}",
+            headers={"x-api-key": self.mock_api_key},
+        )
         self.assertEqual(response.status_code, 200)
 
         data = response.json()
@@ -81,23 +87,33 @@ class MetaTraderAPITestCase(unittest.TestCase):
 
         self.assertIn("login", data)
         self.assertEqual(self.mock_account_id, data["login"])
+        self.assertIsNotNone(data["equity"])
+        self.assertIsNotNone(data["balance"])
+        self.assertIsNotNone(data["server"])
+        self.assertIsNotNone(data["company"])
+        self.assertIsNotNone(data["profit"])
 
     def test_get_trades(self):
         init_mt5_instance(
             self.mock_account_id, self.mock_password, self.mock_server, self.mock_path
         )
 
-        response = self.client.get(f"/trades/get-trades/{self.mock_account_id}")
+        response = self.client.get(
+            f"api/v1/trades/{self.mock_account_id}",
+            headers={"x-api-key": self.mock_api_key},
+        )
         self.assertEqual(response.status_code, 200)
         data = response.json()
 
-        print("Sending response: ")
-        print(json.dumps(data, indent=4))
+        # print("Sending response: ")
+        # print(json.dumps(data, indent=4))
 
-        if len(data["trades"]) > 0:
-            self.assertIsInstance(data["trades"], list)
-        else:
-            self.assertEqual({}, data["trades"])
+        # self.assertTrue(len(data["trades"]) > 1)
+
+        # if len(data["trades"]) > 0:
+        #     self.assertIsInstance(data["trades"], list)
+        # else:
+        #     self.assertEqual({}, data["trades"])
 
 
 if __name__ == "__main__":

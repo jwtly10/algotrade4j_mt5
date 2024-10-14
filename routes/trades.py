@@ -1,8 +1,19 @@
+import json
+from datetime import datetime, timedelta
+from collections import defaultdict
 from fastapi import APIRouter, HTTPException
+from typing import Optional, List, Dict
 from pydantic import BaseModel
-from utils.mt5_instance import get_mt5_instance
 import MetaTrader5 as mt5
+import logging
+
+from utils.mt5_instance import get_mt5_instance
 from utils.utils import log_error
+
+logging.basicConfig(
+    level=logging.DEBUG, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
+log = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -24,7 +35,26 @@ class TradeRequest(BaseModel):
     openTime: str
 
 
-@router.get("/trades/{accountId}")
+class Trade(BaseModel):
+    position_id: int
+    symbol: str
+    total_volume: float
+    isLong: bool
+    open_order_ticket: int
+    open_order_price: float
+    open_order_time: int
+    stop_loss: float
+    take_profit: float
+    profit: Optional[float]
+    closed_ticket: Optional[int]
+    close_order_price: Optional[float]
+    close_order_time: Optional[int]
+
+
+TradesList = List[Trade]
+
+
+@router.get("/trades/{accountId}", response_model=Dict[str, TradesList])
 async def get_trades(accountId: int):
     instance = get_mt5_instance(accountId)
     if not instance:
@@ -33,10 +63,12 @@ async def get_trades(accountId: int):
             detail=f"MT5 instance not initialized for account {accountId}",
         )
 
-    trades = mt5.positions_get()
-    error = mt5.last_error()
-    if trades:
-        return {"status": "success", "trades": [trade._asdict() for trade in trades]}
+    trades: TradesList = get_historic_trades(accountId)
+
+    log.debug(f"Historic Trades Found: {json.dumps(trades, indent=4)}")
+
+    if trades != None:
+        return {"trades": trades}
     else:
         err_str = log_error(
             error, f"/trades/<accountId> [GET] with accountId: {accountId}"
@@ -92,11 +124,11 @@ async def open_trade(accountId: int, req: TradeRequest):
     }
 
     result = mt5.order_send(request)
+    error = mt5.last_error()
 
     if result and result.retcode == mt5.TRADE_RETCODE_DONE:
         return result._asdict()
     else:
-        error = mt5.last_error()
         err_str = log_error(
             error,
             f"/trades/open/<accountId> [POST] with accountId: {accountId} and trade req: {req}",

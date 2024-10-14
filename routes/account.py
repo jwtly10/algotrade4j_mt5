@@ -50,7 +50,7 @@ async def initialize(req: InitializeRequest):
         )
         raise HTTPException(
             status_code=500,
-            detail=f"Failed to initialize MT5 instance: Error {err_str}",
+            detail=f"Failed to initialize MT5 instance: {err_str}",
         )
 
 
