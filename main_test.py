@@ -149,6 +149,20 @@ class MetaTraderAPITestCase(unittest.TestCase):
         self.assertIsNotNone(data["take_profit"])
         self.assertIsNotNone(data["profit"])
 
+    def test_close_trade(self):
+        init_mt5_instance(
+            self.mock_account_id, self.mock_password, self.mock_server, self.mock_path
+        )
+
+        mocked_trade_id = 183419226  # You need to manually open this to pass the test
+
+        response = self.client.post(
+            f"api/v1/trades/close/{self.mock_account_id}/{mocked_trade_id}",
+            headers={"x-api-key": self.mock_api_key},
+        )
+
+        self.assertEqual(response.status_code, 200)
+
 
 if __name__ == "__main__":
     unittest.main()
