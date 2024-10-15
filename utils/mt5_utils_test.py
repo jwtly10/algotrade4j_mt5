@@ -1,7 +1,7 @@
 import unittest
 import os
 from dotenv import load_dotenv
-from utils.mt5_utils import get_historic_trades, get_open_trades
+from utils.mt5_utils import get_trades_for_account, get_open_trades
 from utils.mt5_instance import init_mt5_instance
 import logging
 import json
@@ -27,7 +27,7 @@ class MetaTraderAPITestCase(unittest.TestCase):
             self.mock_account_id, self.mock_password, self.mock_server, self.mock_path
         )
 
-        res = get_historic_trades(self.mock_account_id)
+        res = get_trades_for_account(self.mock_account_id)
 
         print(json.dumps(res, indent=4))
 

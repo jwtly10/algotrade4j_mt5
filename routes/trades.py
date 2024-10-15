@@ -1,14 +1,14 @@
 import json
-from datetime import datetime, timedelta
-from collections import defaultdict
 from fastapi import APIRouter, HTTPException
-from typing import Optional, List, Dict
-from pydantic import BaseModel
+from typing import Dict
 import MetaTrader5 as mt5
 import logging
 
 from utils.mt5_instance import get_mt5_instance
+from utils.mt5_utils import get_trades_for_account
 from utils.utils import log_error
+
+from internal_types import TradeRequest, Trade, TradesList
 
 logging.basicConfig(
     level=logging.DEBUG, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
@@ -16,42 +16,6 @@ logging.basicConfig(
 log = logging.getLogger(__name__)
 
 router = APIRouter()
-
-
-class Number(BaseModel):
-    value: float
-
-
-class TradeRequest(BaseModel):
-    instrument: str
-    quantity: float
-    entryPrice: Number
-    stopLoss: Number
-    takeProfit: Number
-    riskPercentage: float
-    riskRatio: float
-    balanceToRisk: float
-    isLong: bool
-    openTime: str
-
-
-class Trade(BaseModel):
-    position_id: int
-    symbol: str
-    total_volume: float
-    isLong: bool
-    open_order_ticket: int
-    open_order_price: float
-    open_order_time: int
-    stop_loss: float
-    take_profit: float
-    profit: Optional[float]
-    closed_ticket: Optional[int]
-    close_order_price: Optional[float]
-    close_order_time: Optional[int]
-
-
-TradesList = List[Trade]
 
 
 @router.get("/trades/{accountId}", response_model=Dict[str, TradesList])
@@ -63,9 +27,7 @@ async def get_trades(accountId: int):
             detail=f"MT5 instance not initialized for account {accountId}",
         )
 
-    trades: TradesList = get_historic_trades(accountId)
-
-    log.debug(f"Historic Trades Found: {json.dumps(trades, indent=4)}")
+    trades: TradesList = get_trades_for_account(accountId)
 
     if trades != None:
         return {"trades": trades}
@@ -79,7 +41,7 @@ async def get_trades(accountId: int):
 
 
 @router.post("/trades/open/{accountId}")
-async def open_trade(accountId: int, req: TradeRequest):
+async def open_trade(accountId: int, request: TradeRequest):
     instance = get_mt5_instance(accountId)
     if not instance:
         raise HTTPException(
@@ -87,35 +49,57 @@ async def open_trade(accountId: int, req: TradeRequest):
             detail=f"MT5 instance not initialized for account {accountId}",
         )
 
-    symbol_info = mt5.symbol_info_tick(req.instrument)
+    symbol_info = mt5.symbol_info_tick(request.instrument)
     if not symbol_info:
         raise HTTPException(
             status_code=400,
-            detail=f"Invalid Instrument/Symbol for accountId: {accountId}",
+            detail=f"Invalid Instrument/Symbol {request.instrument} for accountId: {accountId}",
         )
 
-    current_price = symbol_info.ask if req.isLong else symbol_info.bid
+    s = mt5.symbol_info(request.instrument)
+    if s is None:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid Instrument/Symbol {request.instrument} for accountId: {accountId}",
+        )
 
-    stop_loss_pips = abs(req.entryPrice.value - req.stopLoss.value)
-    if req.isLong:
+    s_dict = s._asdict()
+
+    digits = s_dict.get("digits")
+
+    # if the symbol is unavailable in MarketWatch, add it
+    if not s.visible:
+        log.info(request.instrument, " is not visible, trying to switch on")
+        if not mt5.symbol_select(request.instrument, True):
+            raise HTTPException(
+                status_code=500,
+                detail=f"Symbol {request.instrument} failed to be selected",
+            )
+
+    print(s)
+
+    current_price = symbol_info.ask if request.isLong else symbol_info.bid
+
+    stop_loss_pips = abs(request.entryPrice.value - request.stopLoss.value)
+    if request.isLong:
         new_stop_loss = current_price - stop_loss_pips
     else:
         new_stop_loss = current_price + stop_loss_pips
 
-    new_take_profit_pips = stop_loss_pips * req.riskRatio
-    if req.isLong:
+    new_take_profit_pips = stop_loss_pips * request.riskRatio
+    if request.isLong:
         new_take_profit = current_price + new_take_profit_pips
     else:
         new_take_profit = current_price - new_take_profit_pips
 
     # TODO: Pip value conversion from Algotrade4j to Adapter
-    risk_amount = req.balanceToRisk * req.riskPercentage
-    volume = risk_amount / (stop_loss_pips * 10)
+    risk_amount = request.balanceToRisk * request.riskPercentage
+    volume = round(risk_amount / (stop_loss_pips * 10), digits)
 
-    order_type = mt5.ORDER_TYPE_BUY if req.isLong else mt5.ORDER_TYPE_SELL
+    order_type = mt5.ORDER_TYPE_BUY if request.isLong else mt5.ORDER_TYPE_SELL
     request = {
         "action": mt5.TRADE_ACTION_DEAL,
-        "symbol": req.instrument,
+        "symbol": request.instrument,
         "volume": volume,
         "type": order_type,
         "price": current_price,
@@ -123,15 +107,18 @@ async def open_trade(accountId: int, req: TradeRequest):
         "tp": new_take_profit,
     }
 
+    log.info(f"Opening trade with req body: {json.dumps(request, indent=4)}")
     result = mt5.order_send(request)
     error = mt5.last_error()
 
     if result and result.retcode == mt5.TRADE_RETCODE_DONE:
+        # Parse the result id into a 'Trade' type
+
         return result._asdict()
     else:
         err_str = log_error(
             error,
-            f"/trades/open/<accountId> [POST] with accountId: {accountId} and trade req: {req}",
+            f"/trades/open/<accountId> [POST] with accountId: {accountId} and trade req: {request}",
         )
         raise HTTPException(
             status_code=500,

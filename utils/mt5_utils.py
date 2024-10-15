@@ -5,17 +5,17 @@ import json
 import MetaTrader5 as mt5
 import logging
 
-from routes.trades import TradesList
-from routes.trades import Trade
 from utils.utils import log_error
+from internal_types import TradeRequest, Trade, TradesList
 
 logging.basicConfig(
     level=logging.DEBUG, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
+
 log = logging.getLogger(__name__)
 
 
-def get_historic_trades(accountId: int) -> TradesList:
+def get_trades_for_account(accountId: int) -> TradesList:
     list_of_trades: TradesList = []
 
     start_time = datetime(2024, 1, 1)
@@ -23,6 +23,7 @@ def get_historic_trades(accountId: int) -> TradesList:
         days=1
     )  # To get around any timezone differences
 
+    # Get all orders
     orders = mt5.history_orders_get(start_time, end_time)
     err = mt5.last_error()
     if orders == None:
@@ -33,42 +34,62 @@ def get_historic_trades(accountId: int) -> TradesList:
             status_code=500, detail=f"Failed to get historic trades: {err_str}"
         )
 
+    log.info(f"Found {len(orders)} orders for account {accountId}")
+
     position_id_orders = defaultdict(list)
 
+    # Format orders in to a position dict
     for trade in orders:
         trade_dict = trade._asdict()
         position_id_orders[trade_dict["position_id"]].append(trade_dict)
 
+    log.info(f"Found {len(position_id_orders)} individual positions.")
+
     for position_id, order_list in position_id_orders.items():
-        # Generic data
+        # Build generic trade data
         combined_trade: Trade = {
             "position_id": position_id,
             "symbol": order_list[0]["symbol"],
             "total_volume": order_list[0]["volume_initial"],
         }
 
-        # All trades have a buy and sell order
+        # All trades should have a buy and sell order (eventually)
         order_buy = {}
         order_sell = {}
 
         for order in order_list:
+            log.debug(f"Found order: {json.dumps(order, indent=4)}")
             if (
                 order["type"] == 0
             ):  # ORDER_TYPE_BUY https://www.mql5.com/en/docs/constants/tradingconstants/orderproperties#enum_order_type
+                log.info(
+                    f"For position {position_id} found BUY order with ticket {order.get('ticket')}"
+                )
                 order_buy = order
             elif (
                 order["type"] == 1
             ):  # ORDER_TYPE_SELL https://www.mql5.com/en/docs/constants/tradingconstants/orderproperties#enum_order_type
                 order_sell = order
-            else:
-                print(
-                    f"NEW ORDER TYPE FOUND - THIS HAS NOT BEEN HANDLED BY THE ADAPTER: {order}"
+                log.info(
+                    f"For position {position_id} found SELL order with ticket {order.get('ticket')}"
                 )
+            else:
+                log.error(f"Unsupport order type for position {position_id}: {order}")
 
-        if order_buy != {} and order_sell == {}:
-            # This is an open trade, this means the open ticket was created but theres a chance there
+        # Handles the case if an order doesnt have a corresponding close. This means we have found an open trade.
+        if order_buy == {} and order_sell == {}:
+            log.error(
+                f"For position {position_id}, found no order_buy or order_sell -  order_buy: {json.dumps(order_buy, indent=4)}, order_sell: {json.dumps(order_sell, indent=4)}"
+            )
+        # If there arent at least 2 orders for a position, it must be an open trade.
+        elif order_buy == {} or order_sell == {}:
+            log.info(
+                f"For position {position_id} no {'BUY' if order_buy == {} else 'SELL'} order"
+            )
             open_position = mt5.positions_get(
-                ticket=order_buy["ticket"] if order_buy else order_sell["ticket"]
+                ticket=order_buy.get("ticket")
+                if order_buy
+                else order_sell.get("ticket")
             )
             err = mt5.last_error()
             if open_position is None:
@@ -81,6 +102,8 @@ def get_historic_trades(accountId: int) -> TradesList:
 
             pos_dict = open_position[0]._asdict()
 
+            # Build the open trades data
+            combined_trade["is_open"] = True
             combined_trade["is_long"] = True if pos_dict["type"] == 0 else False
             combined_trade["open_order_ticket"] = pos_dict["ticket"]
             combined_trade["open_order_price"] = pos_dict["price_open"]
@@ -96,11 +119,6 @@ def get_historic_trades(accountId: int) -> TradesList:
 
             list_of_trades.append(combined_trade)
             continue
-
-        elif order_buy == {} or order_sell == {}:
-            log.debug(
-                f"This should not happen - order_buy: {json.dumps(order_buy, indent=4)}, order_sell: {json.dumps(order_sell, indent=4)}"
-            )
 
         isLong = order_buy["time_done"] < order_sell["time_done"]
         combined_trade["is_long"] = isLong
@@ -119,7 +137,7 @@ def get_historic_trades(accountId: int) -> TradesList:
         combined_trade["stop_loss"] = order_buy["sl"] if isLong else order_sell["sl"]
         combined_trade["take_profit"] = order_buy["tp"] if isLong else order_sell["tp"]
 
-        combined_trade["closed_ticket"] = (
+        combined_trade["close_order_ticket"] = (
             order_sell["ticket"] if isLong else order_buy["ticket"]
         )
         combined_trade["close_order_price"] = (
@@ -128,27 +146,44 @@ def get_historic_trades(accountId: int) -> TradesList:
         combined_trade["close_order_time"] = (
             order_sell["time_done"] if isLong else order_buy["time_done"]
         )
-        # Since we have the open/closed ticket... we can get the profit at close, for a historic position
+
+        log.info(
+            f"Populated basic order data for position {position_id}: {combined_trade}"
+        )
+
+        # Since we have the open/closed ticket... we can get the profit at close, by getting the corresponding deal data
         deals_for_position = mt5.history_deals_get(
             position=combined_trade["position_id"]
         )
 
-        # TODO: convert this to dict
+        log.info(
+            f"Found {len(deals_for_position)} deal(s) for position {position_id} with tickets {[t._asdict().get('ticket') for t in deals_for_position]}"
+        )
+
         for deal in deals_for_position:
-            if deal[1] == int(combined_trade["closed_ticket"]):
-                # TODO: Do we need to also get the commision to set profit?
-                print(f"Profit for trade {combined_trade['position_id']}: {deal[13]}")
-                combined_trade["profit"] = deal[13]
+            deal_dict = deal._asdict()
+            if deal_dict.get("order") == combined_trade["close_order_ticket"]:
+                profit = round(
+                    deal_dict.get("profit", 0)
+                    + deal_dict.get("swap", 0)
+                    + deal_dict.get("commission", 0),
+                    2,
+                )
+                print(f"profit is : {profit}")
+                print(f"Profit for trade {combined_trade['position_id']}: {profit}")
+                combined_trade["profit"] = profit
 
         # We shouldn't not have a profit in historical trades
-        if combined_trade["profit"] is None:
+        if combined_trade.get("profit") is None:
             print(
                 f"Profit should not be None for position {combined_trade['position_id']}"
             )
             raise HTTPException(
                 status_code=500,
-                detail=f"Unable to determin profit for {combined_trade['position_id']}. Check adapter logs.",
+                detail=f"Unable to calculate profit for position {combined_trade['position_id']}. Check adapter logs.",
             )
+
+        combined_trade["is_open"] = False
 
         list_of_trades.append(combined_trade)
 

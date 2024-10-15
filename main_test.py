@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 from fastapi.testclient import TestClient
 from main import app
 from utils.mt5_instance import init_mt5_instance
+from internal_types import TradeRequest
 import logging
 
 load_dotenv()
@@ -30,7 +31,7 @@ class MetaTraderAPITestCase(unittest.TestCase):
 
     def test_initialize_mt5(self):
         response = self.client.post(
-            "api/v1/account/initialize",
+            "api/v1/initialize",
             json={
                 "accountId": self.mock_account_id,
                 "password": self.mock_password,
@@ -41,7 +42,7 @@ class MetaTraderAPITestCase(unittest.TestCase):
         )
 
         data = response.json()
-        print("Sending response: ")
+        print("Response was: ")
         print(json.dumps(data, indent=4))
 
         self.assertEqual(response.status_code, 200)
@@ -61,7 +62,7 @@ class MetaTraderAPITestCase(unittest.TestCase):
         )
 
         data = response.json()
-        print("Sending response: ")
+        print("Response was: ")
         print(json.dumps(data, indent=4))
 
         self.assertEqual(response.status_code, 500)
@@ -82,7 +83,7 @@ class MetaTraderAPITestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
 
         data = response.json()
-        print("Sending response: ")
+        print("Response was: ")
         print(json.dumps(data, indent=4))
 
         self.assertIn("login", data)
@@ -105,15 +106,49 @@ class MetaTraderAPITestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         data = response.json()
 
-        # print("Sending response: ")
-        # print(json.dumps(data, indent=4))
+        print("Response was: ")
+        print(json.dumps(data, indent=4))
 
-        # self.assertTrue(len(data["trades"]) > 1)
+        if len(data["trades"]) > 0:
+            self.assertIsInstance(data["trades"], list)
+        else:
+            self.assertEqual({}, data["trades"])
 
-        # if len(data["trades"]) > 0:
-        #     self.assertIsInstance(data["trades"], list)
-        # else:
-        #     self.assertEqual({}, data["trades"])
+    def test_open_trade(self):
+        init_mt5_instance(
+            self.mock_account_id, self.mock_password, self.mock_server, self.mock_path
+        )
+
+        mock_req_body: TradeRequest = {
+            "instrument": "US100.cash",
+            "quantity": 0.1,
+            "entryPrice": {"value": 20202.85},
+            "stopLoss": {"value": 20172.85},
+            "takeProfit": {"value": 20262.75},
+            "riskPercentage": 0.001,
+            "riskRatio": 2.0,
+            "balanceToRisk": 10000.0,
+            "isLong": True,
+            "openTime": "something",
+        }
+
+        response = self.client.post(
+            f"api/v1/trades/open/{self.mock_account_id}",
+            json=mock_req_body,
+            headers={"x-api-key": self.mock_api_key},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+
+        print("Response was: ")
+        print(json.dumps(data, indent=4))
+
+        if len(data["trades"]) > 0:
+            self.assertIsInstance(data["trades"], list)
+        else:
+            self.assertEqual({}, data["trades"])
+
 
 
 if __name__ == "__main__":
