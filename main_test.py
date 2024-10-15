@@ -7,14 +7,8 @@ from fastapi.testclient import TestClient
 from main import app
 from utils.mt5_instance import init_mt5_instance
 from internal_types import TradeRequest
-import logging
 
 load_dotenv()
-
-logging.basicConfig(
-    level=logging.DEBUG, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
-logger = logging.getLogger(__name__)
 
 client = TestClient(app)
 
@@ -144,11 +138,16 @@ class MetaTraderAPITestCase(unittest.TestCase):
         print("Response was: ")
         print(json.dumps(data, indent=4))
 
-        if len(data["trades"]) > 0:
-            self.assertIsInstance(data["trades"], list)
-        else:
-            self.assertEqual({}, data["trades"])
-
+        self.assertIsNotNone(data["position_id"])
+        self.assertIsNotNone(data["symbol"])
+        self.assertIsNotNone(data["total_volume"])
+        self.assertIsNotNone(data["is_open"])
+        self.assertIsNotNone(data["is_long"])
+        self.assertIsNotNone(data["open_order_ticket"])
+        self.assertIsNotNone(data["open_order_time"])
+        self.assertIsNotNone(data["stop_loss"])
+        self.assertIsNotNone(data["take_profit"])
+        self.assertIsNotNone(data["profit"])
 
 
 if __name__ == "__main__":

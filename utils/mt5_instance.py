@@ -1,11 +1,5 @@
 import MetaTrader5 as mt5
-import logging
 from typing import Tuple, Optional
-
-logging.basicConfig(
-    level=logging.DEBUG, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
-log = logging.getLogger(__name__)
 
 instances = {}
 
@@ -34,7 +28,7 @@ def get_mt5_instance(account_id: int):
     Checks if given account_id is a valid account that has been initialised
     """
     if account_id not in instances:
-        log.error(
+        print(
             f"Account id {account_id} not found in instances. May not have been initialised"
         )
         return None

@@ -3,17 +3,9 @@ from collections import defaultdict
 from fastapi import HTTPException
 import json
 import MetaTrader5 as mt5
-import logging
 
 from utils.utils import log_error
-from internal_types import TradeRequest, Trade, TradesList
-
-logging.basicConfig(
-    level=logging.DEBUG, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
-
-log = logging.getLogger(__name__)
-
+from internal_types import Trade, TradesList
 
 def get_trades_for_account(accountId: int) -> TradesList:
     list_of_trades: TradesList = []
@@ -34,7 +26,7 @@ def get_trades_for_account(accountId: int) -> TradesList:
             status_code=500, detail=f"Failed to get historic trades: {err_str}"
         )
 
-    log.info(f"Found {len(orders)} orders for account {accountId}")
+    print(f"Found {len(orders)} orders for account {accountId}")
 
     position_id_orders = defaultdict(list)
 
@@ -43,7 +35,7 @@ def get_trades_for_account(accountId: int) -> TradesList:
         trade_dict = trade._asdict()
         position_id_orders[trade_dict["position_id"]].append(trade_dict)
 
-    log.info(f"Found {len(position_id_orders)} individual positions.")
+    print(f"Found {len(position_id_orders)} individual positions.")
 
     for position_id, order_list in position_id_orders.items():
         # Build generic trade data
@@ -58,11 +50,11 @@ def get_trades_for_account(accountId: int) -> TradesList:
         order_sell = {}
 
         for order in order_list:
-            log.debug(f"Found order: {json.dumps(order, indent=4)}")
+            print(f"Found order: {json.dumps(order, indent=4)}")
             if (
                 order["type"] == 0
             ):  # ORDER_TYPE_BUY https://www.mql5.com/en/docs/constants/tradingconstants/orderproperties#enum_order_type
-                log.info(
+                print(
                     f"For position {position_id} found BUY order with ticket {order.get('ticket')}"
                 )
                 order_buy = order
@@ -70,20 +62,20 @@ def get_trades_for_account(accountId: int) -> TradesList:
                 order["type"] == 1
             ):  # ORDER_TYPE_SELL https://www.mql5.com/en/docs/constants/tradingconstants/orderproperties#enum_order_type
                 order_sell = order
-                log.info(
+                print(
                     f"For position {position_id} found SELL order with ticket {order.get('ticket')}"
                 )
             else:
-                log.error(f"Unsupport order type for position {position_id}: {order}")
+                print(f"Unsupport order type for position {position_id}: {order}")
 
         # Handles the case if an order doesnt have a corresponding close. This means we have found an open trade.
         if order_buy == {} and order_sell == {}:
-            log.error(
+            print(
                 f"For position {position_id}, found no order_buy or order_sell -  order_buy: {json.dumps(order_buy, indent=4)}, order_sell: {json.dumps(order_sell, indent=4)}"
             )
         # If there arent at least 2 orders for a position, it must be an open trade.
         elif order_buy == {} or order_sell == {}:
-            log.info(
+            print(
                 f"For position {position_id} no {'BUY' if order_buy == {} else 'SELL'} order"
             )
             open_position = mt5.positions_get(
@@ -111,7 +103,7 @@ def get_trades_for_account(accountId: int) -> TradesList:
             combined_trade["stop_loss"] = pos_dict["sl"]
             combined_trade["take_profit"] = pos_dict["tp"]
             combined_trade["profit"] = round(
-                pos_dict["profit"]
+                pos_dict.get("profit", 0)
                 + pos_dict.get("swap", 0)
                 + pos_dict.get("commission", 0),
                 2,
@@ -147,7 +139,7 @@ def get_trades_for_account(accountId: int) -> TradesList:
             order_sell["time_done"] if isLong else order_buy["time_done"]
         )
 
-        log.info(
+        print(
             f"Populated basic order data for position {position_id}: {combined_trade}"
         )
 
@@ -156,7 +148,7 @@ def get_trades_for_account(accountId: int) -> TradesList:
             position=combined_trade["position_id"]
         )
 
-        log.info(
+        print(
             f"Found {len(deals_for_position)} deal(s) for position {position_id} with tickets {[t._asdict().get('ticket') for t in deals_for_position]}"
         )
 
@@ -186,8 +178,52 @@ def get_trades_for_account(accountId: int) -> TradesList:
         combined_trade["is_open"] = False
 
         list_of_trades.append(combined_trade)
-
     return list_of_trades
+
+
+def build_open_trade_from_position_id(position_id) -> Trade:
+    """
+    This method should only be called directly after opening a trade. We assume that the trade is open here
+    """
+    formatted_trade: Trade = {}
+
+    open_position = mt5.positions_get(position=position_id)
+    err = mt5.last_error()
+    if open_position is None:
+        err_str = log_error(
+            err, f"building open trade position with position_id {position_id}"
+        )
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to get open position from position id: {err_str}",
+        )
+
+    print(f"Found {len(open_position)} open positions for position_id {position_id}")
+
+    pos_dict = open_position[0]._asdict()
+
+    pos_dict = open_position[0]._asdict()
+    # Generic data
+    formatted_trade["position_id"] = position_id
+    formatted_trade["symbol"] = pos_dict.get("symbol")
+    formatted_trade["total_volume"] = pos_dict.get("volume")
+
+    # Build the open trades data
+    formatted_trade["is_open"] = True
+    formatted_trade["is_long"] = True if pos_dict["type"] == 0 else False
+    formatted_trade["open_order_ticket"] = pos_dict["ticket"]
+    formatted_trade["open_order_price"] = pos_dict["price_open"]
+    formatted_trade["open_order_time"] = pos_dict["time"]
+    formatted_trade["stop_loss"] = pos_dict["sl"]
+    formatted_trade["take_profit"] = pos_dict["tp"]
+    formatted_trade["profit"] = round(
+        pos_dict.get("profit", 0)
+        + pos_dict.get("swap", 0)
+        + pos_dict.get("commission", 0),
+        2,
+    )
+
+    return formatted_trade
 
 
 def get_open_trades(accountId: int) -> TradesList:

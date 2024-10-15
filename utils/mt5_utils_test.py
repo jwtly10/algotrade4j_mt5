@@ -1,18 +1,11 @@
 import unittest
 import os
 from dotenv import load_dotenv
-from utils.mt5_utils import get_trades_for_account, get_open_trades
+from utils.mt5_utils import get_trades_for_account, build_open_trade_from_position_id
 from utils.mt5_instance import init_mt5_instance
-import logging
 import json
 
 load_dotenv()
-
-logging.basicConfig(
-    level=logging.DEBUG, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
-logger = logging.getLogger(__name__)
-
 
 class MetaTraderAPITestCase(unittest.TestCase):
     def setUp(self):
@@ -32,6 +25,20 @@ class MetaTraderAPITestCase(unittest.TestCase):
         print(json.dumps(res, indent=4))
 
         self.assertTrue(len(res) > 1)
+
+    def test_build_trade_from_position_id(self):
+        init_mt5_instance(
+            self.mock_account_id, self.mock_password, self.mock_server, self.mock_path
+        )
+
+        res = build_open_trade_from_position_id(183415689)
+
+        print(json.dumps(res, indent=4))
+
+        self.assertIsNotNone(res["position_id"])
+        self.assertIsNotNone(res["symbol"])
+        self.assertIsNotNone(res["total_volume"])
+        self.assertIsNotNone(res["profit"])
 
 
 if __name__ == "__main__":

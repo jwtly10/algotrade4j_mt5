@@ -2,17 +2,10 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from utils.mt5_instance import init_mt5_instance, get_mt5_instance
 import utils.validation as validation
-import logging
 from utils.utils import log_error
 import MetaTrader5 as mt5
 
 router = APIRouter()
-
-logging.basicConfig(
-    level=logging.DEBUG, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
-log = logging.getLogger(__name__)
-
 
 class InitializeRequest(BaseModel):
     accountId: int
@@ -33,13 +26,13 @@ async def initialize(req: InitializeRequest):
     if validation_error:
         raise HTTPException(status_code=400, detail=validation_error)
 
-    log.info(f"Initializing MT5 Account {req.accountId}")
+    print(f"Initializing MT5 Account {req.accountId}")
 
     success, error = init_mt5_instance(
         req.accountId, req.password, req.server, req.path
     )
     if success:
-        log.info(f"Successfully initialized account %s", req.accountId)
+        print(f"Successfully initialized account %s", req.accountId)
         return {
             "status": "initialized",
             "message": f"Successfully initialized account with id: {req.accountId}",

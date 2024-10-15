@@ -2,18 +2,12 @@ import json
 from fastapi import APIRouter, HTTPException
 from typing import Dict
 import MetaTrader5 as mt5
-import logging
 
 from utils.mt5_instance import get_mt5_instance
-from utils.mt5_utils import get_trades_for_account
+from utils.mt5_utils import get_trades_for_account, build_open_trade_from_position_id
 from utils.utils import log_error
 
 from internal_types import TradeRequest, Trade, TradesList
-
-logging.basicConfig(
-    level=logging.DEBUG, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
-log = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -69,14 +63,12 @@ async def open_trade(accountId: int, request: TradeRequest):
 
     # if the symbol is unavailable in MarketWatch, add it
     if not s.visible:
-        log.info(request.instrument, " is not visible, trying to switch on")
+        print(request.instrument, " is not visible, trying to switch on")
         if not mt5.symbol_select(request.instrument, True):
             raise HTTPException(
                 status_code=500,
                 detail=f"Symbol {request.instrument} failed to be selected",
             )
-
-    print(s)
 
     current_price = symbol_info.ask if request.isLong else symbol_info.bid
 
@@ -107,14 +99,18 @@ async def open_trade(accountId: int, request: TradeRequest):
         "tp": new_take_profit,
     }
 
-    log.info(f"Opening trade with req body: {json.dumps(request, indent=4)}")
+    print(f"Opening trade with req body: {json.dumps(request, indent=4)}")
     result = mt5.order_send(request)
     error = mt5.last_error()
 
     if result and result.retcode == mt5.TRADE_RETCODE_DONE:
         # Parse the result id into a 'Trade' type
+        res_dict = result._asdict()
+        print(f"Result while opening new trade: {json.dumps(res_dict, indent=4)}")
 
-        return result._asdict()
+        new_trade = build_open_trade_from_position_id(res_dict.get("order"))
+
+        return new_trade
     else:
         err_str = log_error(
             error,
