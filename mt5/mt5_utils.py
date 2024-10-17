@@ -4,12 +4,16 @@ from fastapi import HTTPException
 import json
 import MetaTrader5 as mt5
 
-from utils.utils import log_error
 from internal_types import Trade, TradesList
+
+from utils.logging import get_logger, log_error
+
+log = get_logger(__name__)
+
 
 def get_trades_for_account(accountId: int) -> TradesList:
     list_of_trades: TradesList = []
-    print(f"Finding trades in account {accountId}")
+    log.info(f"Finding trades in account {accountId}")
 
     start_time = datetime(2024, 1, 1)
     end_time = datetime.now() + timedelta(
@@ -27,7 +31,7 @@ def get_trades_for_account(accountId: int) -> TradesList:
             status_code=500, detail=f"Failed to get historic trades: {err_str}"
         )
 
-    print(f"Found {len(orders)} orders for account {accountId}")
+    log.debug(f"Found {len(orders)} orders for account {accountId}")
 
     position_id_orders = defaultdict(list)
 
@@ -36,7 +40,7 @@ def get_trades_for_account(accountId: int) -> TradesList:
         trade_dict = trade._asdict()
         position_id_orders[trade_dict["position_id"]].append(trade_dict)
 
-    print(f"Found {len(position_id_orders)} individual positions.")
+    log.info(f"Found {len(position_id_orders)} individual positions.")
 
     for position_id, order_list in position_id_orders.items():
         # Build generic trade data
@@ -51,32 +55,32 @@ def get_trades_for_account(accountId: int) -> TradesList:
         order_sell = {}
 
         for order in order_list:
-            # print(f"Found order: {json.dumps(order, indent=4)}")
+            log.debug(f"Found order: {json.dumps(order, indent=4)}")
             if (
                 order["type"] == 0
             ):  # ORDER_TYPE_BUY https://www.mql5.com/en/docs/constants/tradingconstants/orderproperties#enum_order_type
-                # print(
-                #     f"For position {position_id} found BUY order with ticket {order.get('ticket')}"
-                # )
+                log.debug(
+                    f"For position {position_id} found BUY order with ticket {order.get('ticket')}"
+                )
                 order_buy = order
             elif (
                 order["type"] == 1
             ):  # ORDER_TYPE_SELL https://www.mql5.com/en/docs/constants/tradingconstants/orderproperties#enum_order_type
                 order_sell = order
-                # print(
-                #     f"For position {position_id} found SELL order with ticket {order.get('ticket')}"
-                # )
+                log.debug(
+                    f"For position {position_id} found SELL order with ticket {order.get('ticket')}"
+                )
             else:
-                print(f"Unsupport order type for position {position_id}: {order}")
+                log.warn(f"Unsupport order type for position {position_id}: {order}")
 
         # Handles the case if an order doesnt have a corresponding close. This means we have found an open trade.
         if order_buy == {} and order_sell == {}:
-            print(
+            log.warn(
                 f"For position {position_id}, found no order_buy or order_sell -  order_buy: {json.dumps(order_buy, indent=4)}, order_sell: {json.dumps(order_sell, indent=4)}"
             )
         # If there arent at least 2 orders for a position, it must be an open trade.
         elif order_buy == {} or order_sell == {}:
-            print(
+            log.debug(
                 f"For position {position_id} no {'BUY' if order_buy == {} else 'SELL'} order. Treating as open"
             )
             open_position = mt5.positions_get(
@@ -140,18 +144,18 @@ def get_trades_for_account(accountId: int) -> TradesList:
             order_sell["time_done"] if isLong else order_buy["time_done"]
         )
 
-        # print(
-        #     f"Populated basic order data for position {position_id}: {combined_trade}"
-        # )
+        log.debug(
+            f"Populated basic order data for position {position_id}: {combined_trade}"
+        )
 
         # Since we have the open/closed ticket... we can get the profit at close, by getting the corresponding deal data
         deals_for_position = mt5.history_deals_get(
             position=combined_trade["position_id"]
         )
 
-        # print(
-        #     f"Found {len(deals_for_position)} deal(s) for position {position_id} with tickets {[t._asdict().get('ticket') for t in deals_for_position]}"
-        # )
+        log.debug(
+            f"Found {len(deals_for_position)} deal(s) for position {position_id} with tickets {[t._asdict().get('ticket') for t in deals_for_position]}"
+        )
 
         for deal in deals_for_position:
             deal_dict = deal._asdict()
@@ -166,7 +170,7 @@ def get_trades_for_account(accountId: int) -> TradesList:
 
         # We shouldn't not have a profit in historical trades
         if combined_trade.get("profit") is None:
-            print(
+            log.error(
                 f"Profit should not be None for position {combined_trade['position_id']}"
             )
             raise HTTPException(
@@ -197,7 +201,7 @@ def build_open_trade_from_position_id(position_id) -> Trade:
             detail=f"Failed to get open position from position id: {err_str}",
         )
 
-    print(f"Found {len(open_position)} open positions for position_id {position_id}")
+    log.info(f"Found {len(open_position)} open positions for position_id {position_id}")
 
     pos_dict = open_position[0]._asdict()
 
@@ -223,11 +227,3 @@ def build_open_trade_from_position_id(position_id) -> Trade:
     )
 
     return formatted_trade
-
-
-def get_open_trades(accountId: int) -> TradesList:
-    trades: TradesList = []
-
-    positions = mt5.positions_get()
-
-    print(positions)

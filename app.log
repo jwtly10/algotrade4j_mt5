@@ -1,0 +1,184 @@
+2024-10-17 19:45:02,392 [INFO] routes.account: Initializing MT5 Account 1510057641
+2024-10-17 19:45:02,392 [INFO] mt5.mt5_instance: Initializing MT5 Account 1510057641
+2024-10-17 19:45:02,392 [INFO] routes.account: Successfully initialized account 1510057641
+2024-10-17 19:45:02,412 [INFO] routes.transactions: New client successfully connected to transaction stream
+2024-10-17 19:45:02,412 [INFO] mt5.mt5_utils: Finding trades in account 1510057641
+2024-10-17 19:45:02,424 [INFO] mt5.mt5_utils: Found 30 individual positions.
+2024-10-17 19:45:02,424 [INFO] routes.transactions: Found 0 open trades
+2024-10-17 19:45:03,430 [INFO] mt5.mt5_utils: Finding trades in account 1510057641
+2024-10-17 19:45:03,430 [INFO] mt5.mt5_utils: Found 30 individual positions.
+2024-10-17 19:45:03,434 [INFO] routes.transactions: Found 0 open trades
+2024-10-17 19:45:04,447 [INFO] mt5.mt5_utils: Finding trades in account 1510057641
+2024-10-17 19:45:04,447 [INFO] mt5.mt5_utils: Found 30 individual positions.
+2024-10-17 19:45:04,447 [INFO] routes.transactions: Found 0 open trades
+2024-10-17 19:45:05,454 [INFO] mt5.mt5_utils: Finding trades in account 1510057641
+2024-10-17 19:45:05,454 [INFO] mt5.mt5_utils: Found 30 individual positions.
+2024-10-17 19:45:05,465 [INFO] routes.transactions: Found 0 open trades
+2024-10-17 19:45:06,466 [INFO] mt5.mt5_utils: Finding trades in account 1510057641
+2024-10-17 19:45:06,466 [INFO] mt5.mt5_utils: Found 30 individual positions.
+2024-10-17 19:45:06,466 [INFO] routes.transactions: Found 0 open trades
+2024-10-17 19:45:07,478 [INFO] mt5.mt5_utils: Finding trades in account 1510057641
+2024-10-17 19:45:07,478 [INFO] mt5.mt5_utils: Found 30 individual positions.
+2024-10-17 19:45:07,481 [INFO] routes.transactions: Found 0 open trades
+2024-10-17 19:45:08,494 [INFO] mt5.mt5_utils: Finding trades in account 1510057641
+2024-10-17 19:45:08,494 [INFO] mt5.mt5_utils: Found 30 individual positions.
+2024-10-17 19:45:08,496 [INFO] routes.transactions: Found 0 open trades
+2024-10-17 19:45:09,500 [INFO] mt5.mt5_utils: Finding trades in account 1510057641
+2024-10-17 19:45:09,500 [INFO] mt5.mt5_utils: Found 30 individual positions.
+2024-10-17 19:45:09,500 [INFO] routes.transactions: Found 0 open trades
+2024-10-17 19:45:10,504 [INFO] mt5.mt5_utils: Finding trades in account 1510057641
+2024-10-17 19:45:10,504 [INFO] mt5.mt5_utils: Found 30 individual positions.
+2024-10-17 19:45:10,504 [INFO] routes.transactions: Found 0 open trades
+2024-10-17 19:45:11,502 [INFO] mt5.mt5_utils: Finding trades in account 1510057641
+2024-10-17 19:45:11,502 [INFO] mt5.mt5_utils: Found 30 individual positions.
+2024-10-17 19:45:11,502 [INFO] routes.transactions: Found 0 open trades
+2024-10-17 19:45:12,490 [INFO] mt5.mt5_utils: Finding trades in account 1510057641
+2024-10-17 19:45:12,490 [INFO] mt5.mt5_utils: Found 30 individual positions.
+2024-10-17 19:45:12,506 [INFO] routes.transactions: Found 0 open trades
+2024-10-17 19:45:13,499 [INFO] mt5.mt5_utils: Finding trades in account 1510057641
+2024-10-17 19:45:13,499 [INFO] mt5.mt5_utils: Found 30 individual positions.
+2024-10-17 19:45:13,499 [INFO] routes.transactions: Found 0 open trades
+2024-10-17 19:45:14,511 [INFO] mt5.mt5_utils: Finding trades in account 1510057641
+2024-10-17 19:45:14,513 [INFO] mt5.mt5_utils: Found 30 individual positions.
+2024-10-17 19:45:14,527 [INFO] routes.transactions: Found 0 open trades
+2024-10-17 19:45:15,533 [INFO] mt5.mt5_utils: Finding trades in account 1510057641
+2024-10-17 19:45:15,533 [INFO] mt5.mt5_utils: Found 30 individual positions.
+2024-10-17 19:45:15,543 [INFO] routes.transactions: Found 0 open trades
+2024-10-17 19:45:16,559 [INFO] mt5.mt5_utils: Finding trades in account 1510057641
+2024-10-17 19:45:16,559 [INFO] mt5.mt5_utils: Found 30 individual positions.
+2024-10-17 19:45:16,574 [INFO] routes.transactions: Found 0 open trades
+2024-10-17 19:45:17,581 [INFO] mt5.mt5_utils: Finding trades in account 1510057641
+2024-10-17 19:45:17,581 [INFO] mt5.mt5_utils: Found 30 individual positions.
+2024-10-17 19:45:17,590 [INFO] routes.transactions: Found 0 open trades
+2024-10-17 19:45:18,618 [INFO] mt5.mt5_utils: Finding trades in account 1510057641
+2024-10-17 19:45:18,621 [INFO] mt5.mt5_utils: Found 30 individual positions.
+2024-10-17 19:45:18,621 [INFO] routes.transactions: Found 0 open trades
+2024-10-17 19:45:19,638 [INFO] mt5.mt5_utils: Finding trades in account 1510057641
+2024-10-17 19:45:19,639 [INFO] mt5.mt5_utils: Found 30 individual positions.
+2024-10-17 19:45:19,642 [INFO] routes.transactions: Found 0 open trades
+2024-10-17 19:45:20,650 [INFO] mt5.mt5_utils: Finding trades in account 1510057641
+2024-10-17 19:45:20,650 [INFO] mt5.mt5_utils: Found 30 individual positions.
+2024-10-17 19:45:20,666 [INFO] routes.transactions: Found 0 open trades
+2024-10-17 19:45:21,640 [INFO] mt5.mt5_utils: Finding trades in account 1510057641
+2024-10-17 19:45:21,640 [INFO] mt5.mt5_utils: Found 30 individual positions.
+2024-10-17 19:45:21,653 [INFO] routes.transactions: Found 0 open trades
+2024-10-17 19:45:22,660 [INFO] mt5.mt5_utils: Finding trades in account 1510057641
+2024-10-17 19:45:22,660 [INFO] mt5.mt5_utils: Found 30 individual positions.
+2024-10-17 19:45:22,660 [INFO] routes.transactions: Found 0 open trades
+2024-10-17 19:45:23,657 [INFO] mt5.mt5_utils: Finding trades in account 1510057641
+2024-10-17 19:45:23,657 [INFO] mt5.mt5_utils: Found 30 individual positions.
+2024-10-17 19:45:23,666 [INFO] routes.transactions: Found 0 open trades
+2024-10-17 19:45:24,658 [INFO] mt5.mt5_utils: Finding trades in account 1510057641
+2024-10-17 19:45:24,658 [INFO] mt5.mt5_utils: Found 30 individual positions.
+2024-10-17 19:45:24,658 [INFO] routes.transactions: Found 0 open trades
+2024-10-17 19:45:25,665 [INFO] mt5.mt5_utils: Finding trades in account 1510057641
+2024-10-17 19:45:25,665 [INFO] mt5.mt5_utils: Found 30 individual positions.
+2024-10-17 19:45:25,669 [INFO] routes.transactions: Found 0 open trades
+2024-10-17 19:45:26,684 [INFO] mt5.mt5_utils: Finding trades in account 1510057641
+2024-10-17 19:45:26,684 [INFO] mt5.mt5_utils: Found 30 individual positions.
+2024-10-17 19:45:26,684 [INFO] routes.transactions: Found 0 open trades
+2024-10-17 19:45:27,696 [INFO] mt5.mt5_utils: Finding trades in account 1510057641
+2024-10-17 19:45:27,696 [INFO] mt5.mt5_utils: Found 30 individual positions.
+2024-10-17 19:45:27,715 [INFO] routes.transactions: Found 0 open trades
+2024-10-17 19:45:28,722 [INFO] mt5.mt5_utils: Finding trades in account 1510057641
+2024-10-17 19:45:28,722 [INFO] mt5.mt5_utils: Found 30 individual positions.
+2024-10-17 19:45:28,726 [INFO] routes.transactions: Found 0 open trades
+2024-10-17 19:45:29,729 [INFO] mt5.mt5_utils: Finding trades in account 1510057641
+2024-10-17 19:45:29,729 [INFO] mt5.mt5_utils: Found 30 individual positions.
+2024-10-17 19:45:29,746 [INFO] routes.transactions: Found 0 open trades
+2024-10-17 19:45:30,753 [INFO] mt5.mt5_utils: Finding trades in account 1510057641
+2024-10-17 19:45:30,753 [INFO] mt5.mt5_utils: Found 30 individual positions.
+2024-10-17 19:45:30,778 [INFO] routes.transactions: Found 0 open trades
+2024-10-17 19:45:31,796 [INFO] mt5.mt5_utils: Finding trades in account 1510057641
+2024-10-17 19:45:31,796 [INFO] mt5.mt5_utils: Found 30 individual positions.
+2024-10-17 19:45:31,796 [INFO] routes.transactions: Found 0 open trades
+2024-10-17 19:45:32,809 [INFO] mt5.mt5_utils: Finding trades in account 1510057641
+2024-10-17 19:45:32,809 [INFO] mt5.mt5_utils: Found 30 individual positions.
+2024-10-17 19:45:32,809 [INFO] routes.transactions: Found 0 open trades
+2024-10-17 19:45:33,817 [INFO] mt5.mt5_utils: Finding trades in account 1510057641
+2024-10-17 19:45:33,817 [INFO] mt5.mt5_utils: Found 30 individual positions.
+2024-10-17 19:45:33,818 [INFO] routes.transactions: Found 0 open trades
+2024-10-17 19:45:34,826 [INFO] mt5.mt5_utils: Finding trades in account 1510057641
+2024-10-17 19:45:34,826 [INFO] mt5.mt5_utils: Found 30 individual positions.
+2024-10-17 19:45:34,826 [INFO] routes.transactions: Found 0 open trades
+2024-10-17 19:45:35,857 [INFO] mt5.mt5_utils: Finding trades in account 1510057641
+2024-10-17 19:45:35,857 [INFO] mt5.mt5_utils: Found 30 individual positions.
+2024-10-17 19:45:35,857 [INFO] routes.transactions: Found 0 open trades
+2024-10-17 19:45:36,859 [INFO] mt5.mt5_utils: Finding trades in account 1510057641
+2024-10-17 19:45:36,859 [INFO] mt5.mt5_utils: Found 30 individual positions.
+2024-10-17 19:45:36,859 [INFO] routes.transactions: Found 0 open trades
+2024-10-17 19:45:37,864 [INFO] mt5.mt5_utils: Finding trades in account 1510057641
+2024-10-17 19:45:37,865 [INFO] mt5.mt5_utils: Found 30 individual positions.
+2024-10-17 19:45:37,871 [INFO] routes.transactions: Found 0 open trades
+2024-10-17 19:45:38,884 [INFO] mt5.mt5_utils: Finding trades in account 1510057641
+2024-10-17 19:45:38,884 [INFO] mt5.mt5_utils: Found 30 individual positions.
+2024-10-17 19:45:38,903 [INFO] routes.transactions: Found 0 open trades
+2024-10-17 19:45:39,888 [INFO] mt5.mt5_utils: Finding trades in account 1510057641
+2024-10-17 19:45:39,888 [INFO] mt5.mt5_utils: Found 30 individual positions.
+2024-10-17 19:45:39,891 [INFO] routes.transactions: Found 0 open trades
+2024-10-17 19:45:40,898 [INFO] mt5.mt5_utils: Finding trades in account 1510057641
+2024-10-17 19:45:40,898 [INFO] mt5.mt5_utils: Found 30 individual positions.
+2024-10-17 19:45:40,903 [INFO] routes.transactions: Found 0 open trades
+2024-10-17 19:45:41,917 [INFO] mt5.mt5_utils: Finding trades in account 1510057641
+2024-10-17 19:45:41,917 [INFO] mt5.mt5_utils: Found 30 individual positions.
+2024-10-17 19:45:41,917 [INFO] routes.transactions: Found 0 open trades
+2024-10-17 19:45:42,925 [INFO] mt5.mt5_utils: Finding trades in account 1510057641
+2024-10-17 19:45:42,925 [INFO] mt5.mt5_utils: Found 30 individual positions.
+2024-10-17 19:45:42,934 [INFO] routes.transactions: Found 0 open trades
+2024-10-17 19:45:43,951 [INFO] mt5.mt5_utils: Finding trades in account 1510057641
+2024-10-17 19:45:43,951 [INFO] mt5.mt5_utils: Found 30 individual positions.
+2024-10-17 19:45:43,951 [INFO] routes.transactions: Found 0 open trades
+2024-10-17 19:45:44,953 [INFO] mt5.mt5_utils: Finding trades in account 1510057641
+2024-10-17 19:45:44,953 [INFO] mt5.mt5_utils: Found 30 individual positions.
+2024-10-17 19:45:44,953 [INFO] routes.transactions: Found 0 open trades
+2024-10-17 19:45:45,962 [INFO] mt5.mt5_utils: Finding trades in account 1510057641
+2024-10-17 19:45:45,962 [INFO] mt5.mt5_utils: Found 30 individual positions.
+2024-10-17 19:45:45,965 [INFO] routes.transactions: Found 0 open trades
+2024-10-17 19:45:46,983 [INFO] mt5.mt5_utils: Finding trades in account 1510057641
+2024-10-17 19:45:46,983 [INFO] mt5.mt5_utils: Found 30 individual positions.
+2024-10-17 19:45:46,996 [INFO] routes.transactions: Found 0 open trades
+2024-10-17 19:45:47,991 [INFO] mt5.mt5_utils: Finding trades in account 1510057641
+2024-10-17 19:45:47,991 [INFO] mt5.mt5_utils: Found 30 individual positions.
+2024-10-17 19:45:48,007 [INFO] routes.transactions: Found 0 open trades
+2024-10-17 19:45:49,012 [INFO] mt5.mt5_utils: Finding trades in account 1510057641
+2024-10-17 19:45:49,012 [INFO] mt5.mt5_utils: Found 30 individual positions.
+2024-10-17 19:45:49,012 [INFO] routes.transactions: Found 0 open trades
+2024-10-17 19:45:50,022 [INFO] mt5.mt5_utils: Finding trades in account 1510057641
+2024-10-17 19:45:50,022 [INFO] mt5.mt5_utils: Found 30 individual positions.
+2024-10-17 19:45:50,040 [INFO] routes.transactions: Found 0 open trades
+2024-10-17 19:45:51,046 [INFO] mt5.mt5_utils: Finding trades in account 1510057641
+2024-10-17 19:45:51,046 [INFO] mt5.mt5_utils: Found 30 individual positions.
+2024-10-17 19:45:51,059 [INFO] routes.transactions: Found 0 open trades
+2024-10-17 19:45:52,069 [INFO] mt5.mt5_utils: Finding trades in account 1510057641
+2024-10-17 19:45:52,071 [INFO] mt5.mt5_utils: Found 30 individual positions.
+2024-10-17 19:45:52,072 [INFO] routes.transactions: Found 0 open trades
+2024-10-17 19:45:53,061 [INFO] mt5.mt5_utils: Finding trades in account 1510057641
+2024-10-17 19:45:53,061 [INFO] mt5.mt5_utils: Found 30 individual positions.
+2024-10-17 19:45:53,061 [INFO] routes.transactions: Found 0 open trades
+2024-10-17 19:45:54,074 [INFO] mt5.mt5_utils: Finding trades in account 1510057641
+2024-10-17 19:45:54,074 [INFO] mt5.mt5_utils: Found 30 individual positions.
+2024-10-17 19:45:54,074 [INFO] routes.transactions: Found 0 open trades
+2024-10-17 19:45:55,077 [INFO] mt5.mt5_utils: Finding trades in account 1510057641
+2024-10-17 19:45:55,077 [INFO] mt5.mt5_utils: Found 30 individual positions.
+2024-10-17 19:45:55,082 [INFO] routes.transactions: Found 0 open trades
+2024-10-17 19:45:56,086 [INFO] mt5.mt5_utils: Finding trades in account 1510057641
+2024-10-17 19:45:56,086 [INFO] mt5.mt5_utils: Found 30 individual positions.
+2024-10-17 19:45:56,089 [INFO] routes.transactions: Found 0 open trades
+2024-10-17 19:45:57,094 [INFO] mt5.mt5_utils: Finding trades in account 1510057641
+2024-10-17 19:45:57,094 [INFO] mt5.mt5_utils: Found 30 individual positions.
+2024-10-17 19:45:57,094 [INFO] routes.transactions: Found 0 open trades
+2024-10-17 19:45:58,099 [INFO] mt5.mt5_utils: Finding trades in account 1510057641
+2024-10-17 19:45:58,099 [INFO] mt5.mt5_utils: Found 30 individual positions.
+2024-10-17 19:45:58,099 [INFO] routes.transactions: Found 0 open trades
+2024-10-17 19:45:59,095 [INFO] mt5.mt5_utils: Finding trades in account 1510057641
+2024-10-17 19:45:59,095 [INFO] mt5.mt5_utils: Found 30 individual positions.
+2024-10-17 19:45:59,111 [INFO] routes.transactions: Found 0 open trades
+2024-10-17 19:46:00,116 [INFO] mt5.mt5_utils: Finding trades in account 1510057641
+2024-10-17 19:46:00,118 [INFO] mt5.mt5_utils: Found 30 individual positions.
+2024-10-17 19:46:00,132 [INFO] routes.transactions: Found 0 open trades
+2024-10-17 19:46:01,135 [INFO] mt5.mt5_utils: Finding trades in account 1510057641
+2024-10-17 19:46:01,135 [INFO] mt5.mt5_utils: Found 30 individual positions.
+2024-10-17 19:46:01,135 [INFO] routes.transactions: Found 0 open trades
+2024-10-17 19:46:02,138 [INFO] mt5.mt5_utils: Finding trades in account 1510057641
+2024-10-17 19:46:02,138 [INFO] mt5.mt5_utils: Found 30 individual positions.
+2024-10-17 19:46:02,154 [INFO] routes.transactions: Found 0 open trades

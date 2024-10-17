@@ -1,11 +1,12 @@
 import unittest
 import os
 from dotenv import load_dotenv
-from utils.mt5_utils import get_trades_for_account, build_open_trade_from_position_id
-from utils.mt5_instance import init_mt5_instance
+from mt5.mt5_utils import get_trades_for_account, build_open_trade_from_position_id
+from mt5.mt5_instance import init_mt5_instance
 import json
 
 load_dotenv()
+
 
 class MetaTraderAPITestCase(unittest.TestCase):
     def setUp(self):

@@ -1,4 +1,21 @@
 from typing import Tuple
+import logging
+from fastapi import FastAPI
+
+
+def configure_logging():
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+        handlers=[
+            logging.StreamHandler(),
+            logging.FileHandler("app.log", mode="a"),  # Temporary so i can analyse logs
+        ],
+    )
+
+
+def get_logger(name: str):
+    return logging.getLogger(name)
 
 
 def log_error(err: Tuple[int, str], action: str) -> str:
@@ -12,5 +29,5 @@ def log_error(err: Tuple[int, str], action: str) -> str:
              "Error code: <error_code>, Reason: <error_message>"
     """
     err_str = f"Error code: {err[0]}, Reason: {err[1]}"
-    print(f"Error during '{action}': {err_str}")
+    get_logger(__name__).error(f"Error during '{action}': {err_str}")
     return err_str

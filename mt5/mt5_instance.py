@@ -1,5 +1,8 @@
 import MetaTrader5 as mt5
 from typing import Tuple, Optional
+from utils.logging import get_logger
+
+log = get_logger(__name__)
 
 instances = {}
 
@@ -16,6 +19,7 @@ def init_mt5_instance(
     :param path: The path to the MT5 installation (string)
     :return: A tuple with a success flag (boolean) and an optional error (tuple of error code and message)
     """
+    log.info(f"Initializing MT5 Account {accountId}")
     if not mt5.initialize(login=accountId, password=password, server=server, path=path):
         error = mt5.last_error()
         return False, error
@@ -28,7 +32,7 @@ def get_mt5_instance(account_id: int):
     Checks if given account_id is a valid account that has been initialised
     """
     if account_id not in instances:
-        print(
+        log.error(
             f"Account id {account_id} not found in instances. May not have been initialised"
         )
         return None

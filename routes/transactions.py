@@ -2,8 +2,12 @@ import json
 import asyncio
 from fastapi import APIRouter, HTTPException
 from starlette.responses import StreamingResponse
-from utils.mt5_instance import get_mt5_instance
-from utils.mt5_utils import get_trades_for_account
+from mt5.mt5_instance import get_mt5_instance
+from mt5.mt5_utils import get_trades_for_account
+from utils.logging import get_logger, log_error
+
+log = get_logger(__name__)
+
 
 router = APIRouter()
 
@@ -22,7 +26,7 @@ async def stream_transactions(accountId: int):
     if accountId not in previous_trades_cache:
         previous_trades_cache[accountId] = []
 
-    print("New client successfully connected to transaction stream")
+    log.info("New client successfully connected to transaction stream")
 
     async def generate_closed_trades_events():
         while True:
@@ -41,7 +45,7 @@ async def stream_transactions(accountId: int):
                 )
             ]
 
-            print(f"Found {len(closed_trades)} open trades")
+            log.info(f"Found {len(closed_trades)} open trades")
 
             if closed_trades:
                 for trade in closed_trades:

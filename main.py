@@ -2,6 +2,7 @@ from fastapi import FastAPI, Depends, HTTPException, Header
 from fastapi.middleware.cors import CORSMiddleware
 from routes.account import router as account_router
 from dotenv import load_dotenv
+from utils import logging
 import os
 
 from routes.trades import router as trades_router
@@ -44,6 +45,11 @@ app.include_router(
 app.include_router(
     transactions_router, prefix="/api/v1", dependencies=[Depends(api_key_dependency)]
 )
+
+
+@app.on_event("startup")
+async def startup_event():
+    logging.configure_logging()
 
 
 @app.get("/health")
