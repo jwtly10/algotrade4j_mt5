@@ -34,7 +34,7 @@ async def get_trades(accountId: int):
         )
 
 
-@router.post("/trades/open/{accountId}")
+@router.post("/trades/{accountId}/open")
 async def open_trade(accountId: int, request: TradeRequest):
     instance = get_mt5_instance(accountId)
     if not instance:
@@ -122,7 +122,7 @@ async def open_trade(accountId: int, request: TradeRequest):
         )
 
 
-@router.post("/trades/close/{accountId}/{tradeId}")
+@router.post("/trades/{accountId}/close/{tradeId}")
 async def close_trade(accountId: int, tradeId: int):
     instance = get_mt5_instance(accountId)
     if not instance:

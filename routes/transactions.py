@@ -1,32 +1,65 @@
+import json
+import asyncio
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
+from starlette.responses import StreamingResponse
 from utils.mt5_instance import get_mt5_instance
-import MetaTrader5 as mt5
-from utils.utils import log_error
+from utils.mt5_utils import get_trades_for_account
 
 router = APIRouter()
 
+previous_trades_cache = {}
 
-## TODO
-@router.get("/transactions/stream/{accountId}")
+
+@router.get("/transactions/{accountId}/stream")
 async def stream_transactions(accountId: int):
-    raise NotImplemented()
-    # instance_check = get_mt5_instance(accountId)
-    # if instance_check != True:
-    #     return instance_check
+    instance_check = get_mt5_instance(accountId)
+    if not instance_check:
+        raise HTTPException(
+            status_code=409,
+            detail=f"MT5 instance not initialized for account {accountId}",
+        )
 
-    # def generate_closed_trades(accountId):
-    #     while True:
-    #         time.sleep(1)
-    #         now = time.time()
-    #         closed_trades = mt5.history_deals_get(
-    #             datetime.now() - timedelta(seconds=1), datetime.now()
-    #         )
+    if accountId not in previous_trades_cache:
+        previous_trades_cache[accountId] = []
 
-    #         if closed_trades:
-    #             for trade in closed_trades:
-    #                 if trade.ticket not in closed_trades_cache[accountId]:
-    #                     closed_trades_cache[accountId][trade.ticket] = now
-    #                     yield f"data: {trade._asdict()}\n\n"
+    print("New client successfully connected to transaction stream")
 
-    # return Response(generate_closed_trades(accountId), content_type="text/event-stream")
+    async def generate_closed_trades_events():
+        while True:
+            current_trades = get_trades_for_account(accountId)
+            previous_trades = previous_trades_cache[accountId]
+
+            # Find new closed trades (trades that were open previously but now closed)
+            closed_trades = [
+                trade
+                for trade in current_trades
+                if not trade.get("is_open")  # Trade is now closed
+                and any(
+                    prev_trade.get("position_id") == trade.get("position_id")
+                    and prev_trade.get("is_open")
+                    for prev_trade in previous_trades  # Was previously open
+                )
+            ]
+
+            print(f"Found {len(closed_trades)} open trades")
+
+            if closed_trades:
+                for trade in closed_trades:
+                    data = {
+                        "type": "CLOSE",
+                        "position_id": trade.get("position_id"),
+                        "profit": trade.get("profit"),
+                        "close_order_price": trade.get("close_order_price"),
+                    }
+                    yield json.dumps(data) + "\n"
+            else:
+                heartbeat = {"heartbeat": True}
+                yield json.dumps(heartbeat) + "\n"
+
+            previous_trades_cache[accountId] = current_trades
+
+            await asyncio.sleep(1)
+
+    return StreamingResponse(
+        generate_closed_trades_events(), media_type="text/event-stream"
+    )

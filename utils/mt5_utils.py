@@ -9,6 +9,7 @@ from internal_types import Trade, TradesList
 
 def get_trades_for_account(accountId: int) -> TradesList:
     list_of_trades: TradesList = []
+    print(f"Finding trades in account {accountId}")
 
     start_time = datetime(2024, 1, 1)
     end_time = datetime.now() + timedelta(
@@ -50,21 +51,21 @@ def get_trades_for_account(accountId: int) -> TradesList:
         order_sell = {}
 
         for order in order_list:
-            print(f"Found order: {json.dumps(order, indent=4)}")
+            # print(f"Found order: {json.dumps(order, indent=4)}")
             if (
                 order["type"] == 0
             ):  # ORDER_TYPE_BUY https://www.mql5.com/en/docs/constants/tradingconstants/orderproperties#enum_order_type
-                print(
-                    f"For position {position_id} found BUY order with ticket {order.get('ticket')}"
-                )
+                # print(
+                #     f"For position {position_id} found BUY order with ticket {order.get('ticket')}"
+                # )
                 order_buy = order
             elif (
                 order["type"] == 1
             ):  # ORDER_TYPE_SELL https://www.mql5.com/en/docs/constants/tradingconstants/orderproperties#enum_order_type
                 order_sell = order
-                print(
-                    f"For position {position_id} found SELL order with ticket {order.get('ticket')}"
-                )
+                # print(
+                #     f"For position {position_id} found SELL order with ticket {order.get('ticket')}"
+                # )
             else:
                 print(f"Unsupport order type for position {position_id}: {order}")
 
@@ -76,7 +77,7 @@ def get_trades_for_account(accountId: int) -> TradesList:
         # If there arent at least 2 orders for a position, it must be an open trade.
         elif order_buy == {} or order_sell == {}:
             print(
-                f"For position {position_id} no {'BUY' if order_buy == {} else 'SELL'} order"
+                f"For position {position_id} no {'BUY' if order_buy == {} else 'SELL'} order. Treating as open"
             )
             open_position = mt5.positions_get(
                 ticket=order_buy.get("ticket")
@@ -139,18 +140,18 @@ def get_trades_for_account(accountId: int) -> TradesList:
             order_sell["time_done"] if isLong else order_buy["time_done"]
         )
 
-        print(
-            f"Populated basic order data for position {position_id}: {combined_trade}"
-        )
+        # print(
+        #     f"Populated basic order data for position {position_id}: {combined_trade}"
+        # )
 
         # Since we have the open/closed ticket... we can get the profit at close, by getting the corresponding deal data
         deals_for_position = mt5.history_deals_get(
             position=combined_trade["position_id"]
         )
 
-        print(
-            f"Found {len(deals_for_position)} deal(s) for position {position_id} with tickets {[t._asdict().get('ticket') for t in deals_for_position]}"
-        )
+        # print(
+        #     f"Found {len(deals_for_position)} deal(s) for position {position_id} with tickets {[t._asdict().get('ticket') for t in deals_for_position]}"
+        # )
 
         for deal in deals_for_position:
             deal_dict = deal._asdict()
@@ -161,8 +162,6 @@ def get_trades_for_account(accountId: int) -> TradesList:
                     + deal_dict.get("commission", 0),
                     2,
                 )
-                print(f"profit is : {profit}")
-                print(f"Profit for trade {combined_trade['position_id']}: {profit}")
                 combined_trade["profit"] = profit
 
         # We shouldn't not have a profit in historical trades
