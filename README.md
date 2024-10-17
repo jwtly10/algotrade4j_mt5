@@ -4,14 +4,6 @@ This is a MetaTrader 5 (MT5) adapter for the Algotrade4J algorithmic trading pla
 
 This is a WIP adapter and not ready for production use yet.
 
-
-### TODO: 
-- Get account data (v0)
-- Get all trades for account (v0)
-- Open trade (v0)
-- Close trade (v0)
-- Stream transactions (Open, Close) (TODO)
-
 #### Deployment:
 TODO: Current implementation works for only a single instance running on a windows server
 Need to support mutliple MT5 Instances (each with different account)
