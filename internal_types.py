@@ -16,7 +16,7 @@ class TradeRequest(BaseModel):
     riskRatio: float
     balanceToRisk: float
     isLong: bool
-    openTime: str
+    openTime: Optional[float]
 
 
 class Trade(BaseModel):

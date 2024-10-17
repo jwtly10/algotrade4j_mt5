@@ -17,7 +17,7 @@ async def get_trades(accountId: int):
     instance = get_mt5_instance(accountId)
     if not instance:
         raise HTTPException(
-            status_code=404,
+            status_code=409,
             detail=f"MT5 instance not initialized for account {accountId}",
         )
 
@@ -39,7 +39,7 @@ async def open_trade(accountId: int, request: TradeRequest):
     instance = get_mt5_instance(accountId)
     if not instance:
         raise HTTPException(
-            status_code=404,
+            status_code=409,
             detail=f"MT5 instance not initialized for account {accountId}",
         )
 
@@ -127,13 +127,13 @@ async def close_trade(accountId: int, tradeId: int):
     instance = get_mt5_instance(accountId)
     if not instance:
         raise HTTPException(
-            status_code=404,
+            status_code=409,
             detail=f"MT5 instance not initialized for account {accountId}",
         )
 
     position = mt5.positions_get(ticket=tradeId)
     if not position:
-        raise HTTPException(status_code=400, detail=f"Trade {tradeId} not found")
+        raise HTTPException(status_code=400, detail=f"Open Trade {tradeId} not found")
 
     symbol = position[0].symbol
     volume = position[0].volume
@@ -158,7 +158,9 @@ async def close_trade(accountId: int, tradeId: int):
     result = mt5.order_send(request)
 
     if result and result.retcode == mt5.TRADE_RETCODE_DONE:
-        return result._asdict()
+        res_dict = result._asdict()
+        formatted_trade = build_open_trade_from_position_id(res_dict.get("order"))
+        return formatted_trade
     else:
         error = mt5.last_error()
         err_str = log_error(

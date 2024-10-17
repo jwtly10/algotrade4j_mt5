@@ -56,7 +56,7 @@ async def get_account(accountId: int):
     instance = get_mt5_instance(accountId)
     if not instance:
         raise HTTPException(
-            status_code=404,
+            status_code=409,
             detail=f"MT5 instance not initialized for account {accountId}",
         )
 
