@@ -13,6 +13,10 @@ router = APIRouter()
 
 previous_trades_cache = {}
 
+# TODO: Currently if we are running, connect and then disconnect. When we connect again, all close trades since will
+# be sent (since the cache persists through connection) temp fix for this will be setting the cache on init, which
+# is functionallity similar to Oanda.
+
 
 @router.get("/transactions/{accountId}/stream")
 async def stream_transactions(accountId: int):
@@ -32,6 +36,12 @@ async def stream_transactions(accountId: int):
         while True:
             current_trades = get_trades_for_account(accountId)
             previous_trades = previous_trades_cache[accountId]
+            # To temp fix the above TODO
+            previous_trades_cache[accountId] = current_trades
+
+            log.info(
+                f"Found {len([t for t in current_trades if t.get('is_open') is True])} open trades"
+            )
 
             # Find new closed trades (trades that were open previously but now closed)
             closed_trades = [
@@ -45,9 +55,11 @@ async def stream_transactions(accountId: int):
                 )
             ]
 
-            log.info(f"Found {len(closed_trades)} open trades")
 
             if closed_trades:
+                log.info(
+                    f"Found {len(closed_trades)} trades that have closed this iteration"
+                )
                 for trade in closed_trades:
                     data = {
                         "type": "CLOSE",

@@ -39,6 +39,19 @@ async def get_trades(accountId: int):
 
 @router.post("/trades/{accountId}/open")
 async def open_trade(accountId: int, request: TradeRequest):
+    """
+    TODO: Improve this, it should be dynamic with validation based on difference between data in algotrade4j and the adapter
+
+    Note:  This endpoint works under the idea that all trades built with Algotrdae4j will include a trade with a stop loss
+    and tp that are built with the idea of risk ratios.
+
+    Since we may not have a data match up between algotrade4j and mt5, the trade values are built internally in the
+    python adapter
+
+    It uses the stop loss and entry price provided, and creates its own values based on the data it has.
+
+    It should still comply to the risk ratio setup requested by the trade.
+    """
     instance = get_mt5_instance(accountId)
     if not instance:
         raise HTTPException(
@@ -75,7 +88,7 @@ async def open_trade(accountId: int, request: TradeRequest):
 
     current_price = symbol_info.ask if request.isLong else symbol_info.bid
 
-    stop_loss_pips = abs(request.entryPrice.value - request.stopLoss.value)
+    stop_loss_pips = abs(request.entryPrice - request.stopLoss)
     if request.isLong:
         new_stop_loss = current_price - stop_loss_pips
     else:
@@ -161,9 +174,8 @@ async def close_trade(accountId: int, tradeId: int):
     result = mt5.order_send(request)
 
     if result and result.retcode == mt5.TRADE_RETCODE_DONE:
-        res_dict = result._asdict()
-        formatted_trade = build_open_trade_from_position_id(res_dict.get("order"))
-        return formatted_trade
+        # Return 200
+        return
     else:
         error = mt5.last_error()
         err_str = log_error(

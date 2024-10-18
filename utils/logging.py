@@ -9,7 +9,8 @@ def configure_logging():
         format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
         handlers=[
             logging.StreamHandler(),
-            logging.FileHandler("app.log", mode="a"),  # Temporary so i can analyse logs
+            # TODO: Use new relic for log appender. Locally can use a log file
+            logging.FileHandler("app.log", mode="a"),
         ],
     )
 

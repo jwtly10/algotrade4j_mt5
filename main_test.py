@@ -127,7 +127,7 @@ class MetaTraderAPITestCase(unittest.TestCase):
         }
 
         response = self.client.post(
-            f"api/v1/trades/open/{self.mock_account_id}",
+            f"api/v1/trades/{self.mock_account_id}/open",
             json=mock_req_body,
             headers={"x-api-key": self.mock_api_key},
         )
@@ -154,10 +154,10 @@ class MetaTraderAPITestCase(unittest.TestCase):
             self.mock_account_id, self.mock_password, self.mock_server, self.mock_path
         )
 
-        mocked_trade_id = 183419226  # You need to manually open this to pass the test
+        mocked_trade_id = 184102117  # You need to manually open this to pass the test
 
         response = self.client.post(
-            f"api/v1/trades/close/{self.mock_account_id}/{mocked_trade_id}",
+            f"api/v1/trades/{self.mock_account_id}/close/{mocked_trade_id}",
             headers={"x-api-key": self.mock_api_key},
         )
 

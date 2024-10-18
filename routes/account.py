@@ -64,6 +64,8 @@ async def get_account(accountId: int):
             detail=f"MT5 instance not initialized for account {accountId}",
         )
 
+    log.info(f"Getting account info for acountId: {accountId}")
+
     account = mt5.account_info()
     error = mt5.last_error()
     if account:

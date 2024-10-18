@@ -2,16 +2,12 @@ from typing import Optional, List
 from pydantic import BaseModel
 
 
-class Number(BaseModel):
-    value: float
-
-
 class TradeRequest(BaseModel):
     instrument: str
     quantity: float
-    entryPrice: Number
-    stopLoss: Number
-    takeProfit: Number
+    entryPrice: Optional[float]
+    stopLoss: Optional[float]
+    takeProfit: Optional[float]
     riskPercentage: float
     riskRatio: float
     balanceToRisk: float
@@ -29,10 +25,10 @@ class Trade(BaseModel):
     open_order_time: int
     stop_loss: float
     take_profit: float
-    profit: Optional[float]
-    close_order_ticket: Optional[int]
-    close_order_price: Optional[float]
-    close_order_time: Optional[int]
+    profit: Optional[float] = None
+    close_order_ticket: Optional[int] = None
+    close_order_price: Optional[float] = None
+    close_order_time: Optional[int] = None
     is_open: bool
 
 

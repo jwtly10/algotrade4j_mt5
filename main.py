@@ -1,15 +1,15 @@
-from fastapi import FastAPI, Depends, HTTPException, Header
+from dotenv import load_dotenv
+
+load_dotenv()
+from fastapi import FastAPI, Depends, HTTPException, Header, Request
 from fastapi.middleware.cors import CORSMiddleware
 from routes.account import router as account_router
-from dotenv import load_dotenv
 from utils import logging
 import os
 
 from routes.trades import router as trades_router
 from routes.transactions import router as transactions_router
 
-
-load_dotenv()
 API_KEY = os.getenv("AUTH_API_KEY")
 API_KEY_HEADER = "X-API-KEY"
 
